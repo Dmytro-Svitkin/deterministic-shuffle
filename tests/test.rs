@@ -1,4 +1,4 @@
-use basic_rust_template::*;
+use deterministic_shuffle::*;
 
 #[test]
 fn test(){}
