@@ -1,0 +1,8 @@
+[package]
+name = "basic-rust-template"
+version = "0.0.0"
+edition = "2024"
+repository = "https://github.com/Dmytro-Svitkin/basic-rust-template"
+license = "BSD-3-Clause"
+
+[dependencies]
