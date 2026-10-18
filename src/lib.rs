@@ -25,6 +25,10 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
         self.collection
     }
 
+    pub const fn len(&self)->usize{
+        S
+    }
+
     pub const fn shuffle(&mut self,shuffle_type:ShuffleType){
         *self=self.shuffled(shuffle_type)
     }
@@ -55,7 +59,7 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
     const fn swap_shuffled(&self,swap_offset:usize)->Self{
         if S<2{return self.none_shuffled()}
         let mut shuffled_collection:[T;S]=self.collection;
-        shuffled_collection.rotate_right(S/swap_offset);
+        shuffled_collection.rotate_left(swap_offset);
         Self{collection:shuffled_collection}
     }
 
