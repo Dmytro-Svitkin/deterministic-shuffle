@@ -37,10 +37,10 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
         return match shuffle_type{
             ShuffleType::Swap(x)=>self.swap_shuffled(x),
             ShuffleType::Stride=>self.stride_shuffled(),
-            ShuffleType::PerfectRiffle=>self.none_shuffled(),
-            ShuffleType::BitReversal=>self.none_shuffled(),
-            ShuffleType::Fold=>self.none_shuffled(),
-            ShuffleType::Multiplicative=>self.none_shuffled(),
+            ShuffleType::PerfectRiffle=>self.perfect_riffle_shuffled(),
+            ShuffleType::BitReversal=>self.bit_reversal_shuffled(),
+            ShuffleType::Fold=>self.fold_shuffled(),
+            ShuffleType::Multiplicative=>self.multiplicative_shuffled(),
             ShuffleType::None=>self.none_shuffled()
         }
     }
@@ -57,13 +57,29 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     const fn swap_shuffled(&self,swap_offset:usize)->Self{
-        if S<2{return self.none_shuffled()}
+        if S<2||S<swap_offset{return self.none_shuffled()}// Will return the initial collection, if has less than 2 elements or if swap_offset is larger than S (i.e., the collection's lenght).
         let mut shuffled_collection:[T;S]=self.collection;
         shuffled_collection.rotate_left(swap_offset);
         Self{collection:shuffled_collection}
     }
 
     const fn stride_shuffled(&self)->Self{
+        self.none_shuffled()
+    }
+
+    const fn perfect_riffle_shuffled(&self)->Self{
+        self.none_shuffled()
+    }
+
+    const fn bit_reversal_shuffled(&self)->Self{
+        self.none_shuffled()
+    }
+
+    const fn fold_shuffled(&self)->Self{
+        self.none_shuffled()
+    }
+    
+    const fn multiplicative_shuffled(&self)->Self{
         self.none_shuffled()
     }
 }
