@@ -53,12 +53,10 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     const fn repush_half_shuffled(&self)->Self{
-        let collection:[T;S]=self.collection;
-        let collection_len:usize=collection.len();
-        if collection_len<2{return self.none_shuffled()}
-        let mut result:[T;S]=collection;
-        result.rotate_right(collection_len/2);
-        Self{collection:result}
+        if S<2{return self.none_shuffled()}
+        let mut shuffled_collection:[T;S]=self.collection;
+        shuffled_collection.rotate_right(S/2);
+        Self{collection:shuffled_collection}
     }
 
     const fn stride_shuffled(&self)->Self{
