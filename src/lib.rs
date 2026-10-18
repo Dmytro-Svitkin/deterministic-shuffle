@@ -1,14 +1,14 @@
 #![no_std]
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq,PartialOrd,Ord)]
-struct Collection<T:Copy+PartialEq,const S:usize=256>{// For now collections of any type are legal.
+pub struct Collection<T:Copy+PartialEq,const S:usize=256>{// For now collections of any type are legal.
     pub(crate)collection:[T;S]
     //,fill_value:T
 }
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
-enum ShuffleType{
-    RepushHalf,Stride,PerfectRiffle,BitReversal,Fold,Multiplicative,
+pub enum ShuffleType{
+    Swap(usize),Stride,PerfectRiffle,BitReversal,Fold,Multiplicative,
     None// Also a shuffle, which does not permutate the initial collection.
 }
 
@@ -31,7 +31,7 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
 
     pub const fn shuffled(&self,shuffle_type:ShuffleType)->Self{
         return match shuffle_type{
-            ShuffleType::RepushHalf=>self.none_shuffled(),
+            ShuffleType::Swap(x)=>self.swap_shuffled(x),
             ShuffleType::Stride=>self.stride_shuffled(),
             ShuffleType::PerfectRiffle=>self.none_shuffled(),
             ShuffleType::BitReversal=>self.none_shuffled(),
@@ -52,10 +52,10 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
         *self
     }
 
-    const fn repush_half_shuffled(&self)->Self{
+    const fn swap_shuffled(&self,swap_offset:usize)->Self{
         if S<2{return self.none_shuffled()}
         let mut shuffled_collection:[T;S]=self.collection;
-        shuffled_collection.rotate_right(S/2);
+        shuffled_collection.rotate_right(S/swap_offset);
         Self{collection:shuffled_collection}
     }
 
