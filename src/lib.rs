@@ -1,14 +1,16 @@
 #![no_std]
 
+use smath::gcd;
+
 #[derive(Debug,Clone,Copy,PartialEq,Eq,PartialOrd,Ord)]
-pub struct Collection<T:Copy+PartialEq,const S:usize=256>{// For now collections of any type are legal.
+pub struct Collection<T:Copy+PartialEq,const S:usize=256>{// For now collections of any (copy-able) type are legal.
     pub(crate)collection:[T;S]
     //,fill_value:T
 }
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum ShuffleType{
-    Swap(usize),Stride,PerfectRiffle,BitReversal,Fold,Multiplicative,
+    Swap(usize),Stride(usize),PerfectRiffle,BitReversal,Fold,Multiplicative,
     None// Also a shuffle, which does not permutate the initial collection.
 }
 
@@ -35,8 +37,8 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
 
     pub const fn shuffled(&self,shuffle_type:ShuffleType)->Self{
         return match shuffle_type{
-            ShuffleType::Swap(x)=>self.swap_shuffled(x),
-            ShuffleType::Stride=>self.stride_shuffled(),
+            ShuffleType::Swap(swap_offset)=>self.swap_shuffled(swap_offset),
+            ShuffleType::Stride(stride_step)=>self.stride_shuffled(stride_step),
             ShuffleType::PerfectRiffle=>self.perfect_riffle_shuffled(),
             ShuffleType::BitReversal=>self.bit_reversal_shuffled(),
             ShuffleType::Fold=>self.fold_shuffled(),
@@ -63,7 +65,8 @@ impl<T:Copy+PartialEq,const S:usize>Collection<T,S>{// T needs to be copy-able.
         Self{collection:shuffled_collection}
     }
 
-    const fn stride_shuffled(&self)->Self{
+    const fn stride_shuffled(&self,stride_step:usize)->Self{
+        if gcd(&[S as u32,stride_step as u32])!=1{return self.none_shuffled()}
         self.none_shuffled()
     }
 
