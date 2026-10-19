@@ -81,8 +81,8 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         let mut stride_counter:usize=0;
         while index_counter<S-1{
             index_counter+=1;
-            stride_counter+=stride_step;
-            if stride_counter>S{stride_counter-=S}
+            if S-stride_counter<stride_step{stride_counter=stride_step-(S-stride_counter)}// Overflow protection.
+            else{stride_counter+=stride_step}
             result[stride_counter]=self.collection[index_counter]
         }
         Self{collection:result}
