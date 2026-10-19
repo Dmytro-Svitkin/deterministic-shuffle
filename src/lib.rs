@@ -76,17 +76,26 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn stride_shuffled_unchecked(&self,stride_step:usize)->Self{
-        self.none_shuffled()
+        let mut result:[T;S]=self.collection;
+        let mut index_counter:usize=0;
+        let mut stride_counter:usize=0;
+        while index_counter<S-1{
+            index_counter+=1;
+            stride_counter+=stride_step;
+            if stride_counter>S{stride_counter-=S}
+            result[stride_counter]=self.collection[index_counter]
+        }
+        Self{collection:result}
     }
     
     pub const fn stride_shuffled(&self,stride_step:usize)->Option<Self>{
-        if gcd(&[S as u32,stride_step as u32])!=1{return None}
+        if gcd(&[S as u32,stride_step as u32])!=1||stride_step==0||S==0{return None}
         else if stride_step==1{return Some(self.none_shuffled())}
         Some(unsafe{self.stride_shuffled_unchecked(stride_step)})
     }
 
     pub const fn stride_shuffled_soft(&self,stride_step:usize)->Self{
-        if gcd(&[S as u32,stride_step as u32])!=1||stride_step==1{return self.none_shuffled()}
+        if gcd(&[S as u32,stride_step as u32])!=1||stride_step<2||S==0{return self.none_shuffled()}
         unsafe{self.stride_shuffled_unchecked(stride_step)}
     }
 
