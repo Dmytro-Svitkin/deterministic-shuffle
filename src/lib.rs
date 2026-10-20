@@ -31,11 +31,25 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         S
     }
 
+    /*
     pub const fn shuffle(&mut self,shuffle_type:ShuffleType){
         *self=self.shuffled(shuffle_type)
     }
+    */
 
-    pub const fn shuffled(&self,shuffle_type:ShuffleType)->Self{
+    pub const fn shuffled(&self,shuffle_type:ShuffleType)->Option<Self>{
+        return match shuffle_type{
+            ShuffleType::Swap(swap_offset)=>self.swap_shuffled(swap_offset),
+            ShuffleType::Stride(stride_step)=>self.stride_shuffled(stride_step),
+            ShuffleType::PerfectRiffle=>self.perfect_riffle_shuffled(),
+            ShuffleType::BitReversal=>self.bit_reversal_shuffled(),
+            ShuffleType::Fold=>self.fold_shuffled(),
+            ShuffleType::Multiplicative=>self.multiplicative_shuffled(),
+            _=>Some(*self)
+        }
+    }
+    
+    pub const fn shuffled_soft(&self,shuffle_type:ShuffleType)->Self{
         return match shuffle_type{
             ShuffleType::Swap(swap_offset)=>self.swap_shuffled_soft(swap_offset),
             ShuffleType::Stride(stride_step)=>self.stride_shuffled_soft(stride_step),
@@ -43,7 +57,7 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
             ShuffleType::BitReversal=>self.bit_reversal_shuffled_soft(),
             ShuffleType::Fold=>self.fold_shuffled_soft(),
             ShuffleType::Multiplicative=>self.multiplicative_shuffled_soft(),
-            ShuffleType::None=>self.none_shuffled()
+            _=>*self
         }
     }
 
@@ -54,10 +68,6 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         Self{collection:self.collection}
     }
 
-    const fn none_shuffled(&self)->Self{
-        *self
-    }
-
     pub const unsafe fn swap_shuffled_unchecked(&self,swap_offset:usize)->Self{
         let mut shuffled_collection:[T;S]=self.collection;
         shuffled_collection.rotate_left(swap_offset);
@@ -66,12 +76,12 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
 
     pub const fn swap_shuffled(&self,swap_offset:usize)->Option<Self>{
         if S<swap_offset{return None}
-        else if S<2{return Some(self.none_shuffled())}
+        else if S<2{return Some(*self)}
         Some(unsafe{self.swap_shuffled_unchecked(swap_offset)})
     }
 
     pub const fn swap_shuffled_soft(&self,swap_offset:usize)->Self{
-        if S<2||S<swap_offset{return self.none_shuffled()}// Will return the initial collection, if has less than 2 elements or if swap_offset is larger than S (i.e., the collection's lenght).
+        if S<2||S<swap_offset{return *self}// Will return the initial collection, if has less than 2 elements or if swap_offset is larger than S (i.e., the collection's lenght).
         unsafe{self.swap_shuffled_unchecked(swap_offset)}
     }
 
@@ -103,12 +113,12 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     
     pub const fn stride_shuffled(&self,stride_step:usize)->Option<Self>{
         if gcd(&[S as u32,stride_step as u32])!=1||stride_step==0||stride_step>=S{return None}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
-        else if stride_step==1{return Some(self.none_shuffled())}
+        else if stride_step==1{return Some(*self)}
         Some(unsafe{self.stride_shuffled_unchecked(stride_step)})
     }
 
     pub const fn stride_shuffled_soft(&self,stride_step:usize)->Self{
-        if gcd(&[S as u32,stride_step as u32])!=1||stride_step<2||stride_step>=S{return self.none_shuffled()}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
+        if gcd(&[S as u32,stride_step as u32])!=1||stride_step<2||stride_step>=S{return *self}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
         unsafe{self.stride_shuffled_unchecked(stride_step)}
     }
 
@@ -124,34 +134,20 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         Self{collection:result}
     }
 
-    pub const unsafe fn perfect_riffle_shuffled_unchecked_odd_friendly(&self)->Self{
-        let mut result:[T;S]=self.collection;
-        let left_half:usize=(S+1)/2;
-        let mut half_counter:usize=0;
-        while half_counter<S/2{
-            result[half_counter*2]=self.collection[half_counter];
-            result[half_counter*2+1]=self.collection[half_counter+left_half];
-            half_counter+=1;
-        }
-
-        if S%2!=0{result[S-1]=self.collection[left_half-1]}
-
-        Self{collection:result}
-    }
-
     pub const fn perfect_riffle_shuffled(&self)->Option<Self>{
         if S%2!=0{return None}
-        else if S<3{return Some(self.none_shuffled())}
+        else if S<3{return Some(*self)}
         Some(unsafe{self.perfect_riffle_shuffled_unchecked()})
     }
     
     pub const fn perfect_riffle_shuffled_soft(&self)->Self{
-        if S<3{return self.none_shuffled()}
-        unsafe{self.perfect_riffle_shuffled_unchecked_odd_friendly()}
+        if S<3{return*self}
+        else if S%2!=0{return unsafe{self.stride_shuffled_unchecked(2)}}
+        unsafe{self.perfect_riffle_shuffled_unchecked()}
     }
     
     pub const unsafe fn bit_reversal_shuffled_unchecked(&self)->Self{
-        self.none_shuffled()
+        *self
     }
 
     pub const fn bit_reversal_shuffled(&self)->Option<Self>{
@@ -159,11 +155,11 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
     
     pub const fn bit_reversal_shuffled_soft(&self)->Self{
-        self.none_shuffled()
+        *self
     }
 
     pub const unsafe fn fold_shuffled_unchecked(&self)->Self{
-        self.none_shuffled()
+        *self
     }
 
     pub const fn fold_shuffled(&self)->Option<Self>{
@@ -171,11 +167,11 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
     
     pub const fn fold_shuffled_soft(&self)->Self{
-        self.none_shuffled()
+        *self
     }
     
     pub const unsafe fn multiplicative_shuffled_unchecked(&self)->Self{
-        self.none_shuffled()
+        *self
     }
 
     pub const fn multiplicative_shuffled(&self)->Option<Self>{
@@ -184,7 +180,7 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const fn multiplicative_shuffled_soft(&self)->Self{
-        if S==220{return self.none_shuffled()}
+        if S==220{return *self}
         unsafe{self.multiplicative_shuffled_unchecked()}
     }
 }
