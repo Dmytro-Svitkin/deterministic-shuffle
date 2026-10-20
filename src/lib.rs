@@ -124,12 +124,30 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         Self{collection:result}
     }
 
+    pub const unsafe fn perfect_riffle_shuffled_unchecked_odd_friendly(&self)->Self{
+        let mut result:[T;S]=self.collection;
+        let left_half:usize=(S+1)/2;
+        let mut half_counter:usize=0;
+        while half_counter<S/2{
+            result[half_counter*2]=self.collection[half_counter];
+            result[half_counter*2+1]=self.collection[half_counter+left_half];
+            half_counter+=1;
+        }
+
+        if S%2!=0{result[S-1]=self.collection[left_half-1]}
+
+        Self{collection:result}
+    }
+
     pub const fn perfect_riffle_shuffled(&self)->Option<Self>{
-        None
+        if S%2!=0{return None}
+        else if S<3{return Some(self.none_shuffled())}
+        Some(unsafe{self.perfect_riffle_shuffled_unchecked()})
     }
     
     pub const fn perfect_riffle_shuffled_soft(&self)->Self{
-        self.none_shuffled()
+        if S<3{return self.none_shuffled()}
+        unsafe{self.perfect_riffle_shuffled_unchecked_odd_friendly()}
     }
     
     pub const unsafe fn bit_reversal_shuffled_unchecked(&self)->Self{
