@@ -113,7 +113,16 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn perfect_riffle_shuffled_unchecked(&self)->Self{
-        self.none_shuffled()
+        let mut result:[T;S]=self.collection;
+        let mut left_counter:usize=0;
+        let mut right_counter:usize=S/2;
+        while right_counter<S{
+            result[left_counter*2]=self.collection[left_counter];
+            result[left_counter*2+1]=self.collection[right_counter];
+            left_counter+=1;
+            right_counter+=1;
+        }
+        Self{collection:result}
     }
 
     pub const fn perfect_riffle_shuffled(&self)->Option<Self>{
