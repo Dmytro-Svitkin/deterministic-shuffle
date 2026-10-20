@@ -96,9 +96,9 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn swap_shuffled_unchecked(&self,swap_offset:usize)->Self{
-        let mut shuffled_collection:[T;S]=self.collection.unwrap();
-        shuffled_collection.rotate_left(swap_offset);
-        Self{collection:Some(shuffled_collection)}
+        let mut result_collection:[T;S]=self.collection.unwrap();
+        result_collection.rotate_left(swap_offset);
+        Self{collection:Some(result_collection)}
     }
 
     pub const fn swap_shuffled(&self,swap_offset:usize)->Self{
@@ -114,29 +114,31 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn stride_shuffled_unchecked_overflow_vulnerable(&self,stride_step:usize)->Self{
-        let mut result:[T;S]=self.collection.unwrap();
+        let initial_collection:[T;S]=self.collection.unwrap();
+        let mut result_collection:[T;S]=initial_collection;
         let mut index_counter:usize=0;
         let mut stride_counter:usize=0;
         while index_counter<S-1{
             index_counter+=1;
             stride_counter+=stride_step;
             if stride_counter>S{stride_counter-=S}
-            result[stride_counter]=self.collection.unwrap()[index_counter]
+            result_collection[stride_counter]=initial_collection[index_counter]
         }
-        Self{collection:Some(result)}
+        Self{collection:Some(result_collection)}
     }
 
     pub const unsafe fn stride_shuffled_unchecked(&self,stride_step:usize)->Self{
-        let mut result:[T;S]=self.collection.unwrap();
+        let initial_collection:[T;S]=self.collection.unwrap();
+        let mut result_collection:[T;S]=initial_collection;
         let mut index_counter:usize=0;
         let mut stride_counter:usize=0;
         while index_counter<S-1{
             index_counter+=1;
             if S-stride_counter<=stride_step{stride_counter=stride_step-(S-stride_counter)}// Simple overflow protection.
             else{stride_counter+=stride_step}
-            result[stride_counter]=self.collection.unwrap()[index_counter]
+            result_collection[stride_counter]=initial_collection[index_counter]
         }
-        Self{collection:Some(result)}
+        Self{collection:Some(result_collection)}
     }
     
     pub const fn stride_shuffled(&self,stride_step:usize)->Self{
@@ -152,12 +154,13 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn perfect_riffle_shuffled_unchecked(&self)->Self{
-        let mut result:[T;S]=self.collection.unwrap();
+        let initial_collection:[T;S]=self.collection.unwrap();
+        let mut result:[T;S]=initial_collection;
         let half:usize=S/2;
         let mut half_counter:usize=0;
         while half_counter<half{
-            result[half_counter*2]=self.collection.unwrap()[half_counter];
-            result[half_counter*2+1]=self.collection.unwrap()[half_counter+half];
+            result[half_counter*2]=initial_collection[half_counter];
+            result[half_counter*2+1]=initial_collection[half_counter+half];
             half_counter+=1;
         }
         Self{collection:Some(result)}
@@ -177,13 +180,15 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const unsafe fn bit_reversal_shuffled_unchecked(&self)->Self{
-        let mut result:[T;S]=self.collection.unwrap();
+        let initial_collection:[T;S]=self.collection.unwrap();
+        let mut result_collection:[T;S]=initial_collection;
+        let anchor_value_bits:u32=S.trailing_zeros();
         let mut index_counter:usize=0;
         while index_counter<S-2{
             index_counter+=1;
-            result[reverse_bits(index_counter,S)]=self.collection.unwrap()[index_counter]
+            result_collection[reverse_bits(index_counter,anchor_value_bits)]=initial_collection[index_counter]
         }
-        Self{collection:Some(result)}
+        Self{collection:Some(result_collection)}
     }
 
     pub const fn bit_reversal_shuffled(&self)->Self{
@@ -223,11 +228,10 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 }
 
-const fn reverse_bits(mut value:usize,anchor_value:usize)->usize{
+const fn reverse_bits(mut value:usize,anchor_value_bits:u32)->usize{
     let mut result:usize=0;
-    let bits:u32=anchor_value.trailing_zeros();
     let mut counter:u32=0;
-    while counter<bits{
+    while counter<anchor_value_bits{
         result=(result<<1)|(value&1);
         value>>=1;
         counter+=1
