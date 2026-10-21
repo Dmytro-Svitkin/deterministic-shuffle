@@ -1,6 +1,6 @@
 [package]
 name = "deterministic-shuffle"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 repository = "https://github.com/Dmytro-Svitkin/deterministic-shuffle"
 description = "A lightweight, no_std-compatible Rust library for deterministic shuffling."
