@@ -100,13 +100,6 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         }
     }
 
-    pub const fn auto_shuffle(&mut self){// Uses the best* shuffle for the current collection.
-    }
-
-    pub const fn auto_shuffled(&self)->Self{// Uses the best* shuffle for the current collection.
-        Self{collection:self.collection}
-    }
-
     pub const unsafe fn swap_shuffled_unchecked(&self,swap_offset:usize)->Self{
         let mut result_collection:[T;S]=self.collection.unwrap();
         result_collection.rotate_left(swap_offset);
