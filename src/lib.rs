@@ -110,7 +110,38 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         }
     }
 
+    pub const unsafe fn shuffled_unchecked_repeated_unchecked(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        let mut collection:Collection<T,S>=*self;
+        let mut repetitions:usize=repetitions;
+        while repetitions>0{
+            repetitions-=1;
+            unsafe{collection.shuffle_unchecked(shuffle_type)}
+        }
+        collection
+    }
+
     pub const unsafe fn shuffled_repeated_unchecked(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        let mut collection:Collection<T,S>=*self;
+        let mut repetitions:usize=repetitions;
+        while repetitions>0{
+            repetitions-=1;
+            collection.shuffle(shuffle_type)
+        }
+        collection
+    }
+
+    pub const unsafe fn shuffled_soft_repeated_unchecked(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        let mut collection:Collection<T,S>=*self;
+        let mut repetitions:usize=repetitions;
+        while repetitions>0{
+            repetitions-=1;
+            collection.shuffle_soft(shuffle_type)
+        }
+        collection
+    }
+
+    pub const unsafe fn shuffled_unchecked_repeated(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        if self.is_none()||repetitions==0{return Self{collection:None}}
         let mut collection:Collection<T,S>=*self;
         let mut repetitions:usize=repetitions;
         while repetitions>0{
@@ -131,7 +162,48 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         collection
     }
 
+    pub const fn shuffled_soft_repeated(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        if self.is_none()||repetitions==0{return Self{collection:None}}
+        let mut collection:Collection<T,S>=*self;
+        let mut repetitions:usize=repetitions;
+        while repetitions>0{
+            repetitions-=1;
+            collection.shuffle_soft(shuffle_type)
+        }
+        collection
+    }
+
+    pub const unsafe fn shuffled_unchecked_repeated_soft(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        if self.is_none(){return Self{collection:None}}
+        else if repetitions==0{return*self}
+        let mut collection:Collection<T,S>=*self;
+        if repetitions==1{unsafe{collection.shuffle_unchecked(shuffle_type)}}
+        else{
+            let mut repetitions:usize=repetitions;
+            while repetitions>0{
+                repetitions-=1;
+                unsafe{collection.shuffle_unchecked(shuffle_type)}
+            }
+        }
+        collection
+    }
+
     pub const fn shuffled_repeated_soft(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
+        if self.is_none(){return Self{collection:None}}
+        else if repetitions==0{return*self}
+        let mut collection:Collection<T,S>=*self;
+        if repetitions==1{collection.shuffle(shuffle_type)}
+        else{
+            let mut repetitions:usize=repetitions;
+            while repetitions>0{
+                repetitions-=1;
+                collection.shuffle(shuffle_type)
+            }
+        }
+        collection
+    }
+
+    pub const fn shuffled_soft_repeated_soft(&self,shuffle_type:ShuffleType,repetitions:usize)->Self{
         if self.is_none(){return Self{collection:None}}
         else if repetitions==0{return*self}
         let mut collection:Collection<T,S>=*self;
