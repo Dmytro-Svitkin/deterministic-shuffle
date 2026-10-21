@@ -9,7 +9,7 @@ pub struct Collection<T:Copy,const S:usize=256>{// For now collections of any (c
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum ShuffleType{
-    Swap(usize),Stride(usize),PerfectRiffle,BitReversal,Fold,Multiplicative,
+    Swap(usize),Stride(usize),PerfectRiffle,BitReversal,Fold,Multiplicative(usize),
     None// Also a shuffle, which does not permutate the initial collection.
 }
 
@@ -71,7 +71,7 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
             ShuffleType::PerfectRiffle=>unsafe{self.perfect_riffle_shuffled_unchecked()},
             ShuffleType::BitReversal=>unsafe{self.bit_reversal_shuffled_unchecked()},
             ShuffleType::Fold=>unsafe{self.fold_shuffled_unchecked()},
-            ShuffleType::Multiplicative=>unsafe{self.multiplicative_shuffled_unchecked()},
+            ShuffleType::Multiplicative(multiplier)=>unsafe{self.multiplicative_shuffled_unchecked(multiplier)},
             _=>*self
         }
     }
@@ -83,7 +83,7 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
             ShuffleType::PerfectRiffle=>self.perfect_riffle_shuffled(),
             ShuffleType::BitReversal=>self.bit_reversal_shuffled(),
             ShuffleType::Fold=>self.fold_shuffled(),
-            ShuffleType::Multiplicative=>self.multiplicative_shuffled(),
+            ShuffleType::Multiplicative(multiplier)=>self.multiplicative_shuffled(multiplier),
             _=>*self
         }
     }
@@ -95,7 +95,7 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
             ShuffleType::PerfectRiffle=>self.perfect_riffle_shuffled_soft(),
             ShuffleType::BitReversal=>self.bit_reversal_shuffled_soft(),
             ShuffleType::Fold=>self.fold_shuffled_soft(),
-            ShuffleType::Multiplicative=>self.multiplicative_shuffled_soft(),
+            ShuffleType::Multiplicative(multiplier)=>self.multiplicative_shuffled_soft(multiplier),
             _=>*self
         }
     }
@@ -245,16 +245,26 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         unsafe{self.fold_shuffled_unchecked()}
     }
 
-    pub const unsafe fn multiplicative_shuffled_unchecked(&self)->Self{
-        *self
+    pub const unsafe fn multiplicative_shuffled_unchecked(&self,multiplier:usize)->Self{
+        let initial_collection:[T;S]=self.collection.unwrap();
+        let mut result_collection:[T;S]=initial_collection;
+        let mut index_counter:usize=0;
+        while index_counter<S-1{
+            index_counter+=1;
+            result_collection[(index_counter*multiplier)%S]=initial_collection[index_counter]
+        }
+        Self{collection:Some(result_collection)}
     }
 
-    pub const fn multiplicative_shuffled(&self)->Self{
-        *self
+    pub const fn multiplicative_shuffled(&self,multiplier:usize)->Self{
+        if self.is_none()||gcd(&[multiplier as u32,S as u32])!=1{return Self{collection:None}}
+        unsafe{self.multiplicative_shuffled_unchecked(multiplier)}
     }
 
-    pub const fn multiplicative_shuffled_soft(&self)->Self{
-        *self
+    pub const fn multiplicative_shuffled_soft(&self,multiplier:usize)->Self{
+        if self.is_none(){return Self{collection:None}}
+        else if S<3||gcd(&[multiplier as u32,S as u32])!=1{return*self}
+        unsafe{self.multiplicative_shuffled_unchecked(multiplier)}
     }
 }
 
