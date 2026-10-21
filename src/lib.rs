@@ -56,6 +56,10 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         S
     }
 
+    pub const unsafe fn shuffle_unchecked(&mut self,shuffle_type:ShuffleType){
+        *self=unsafe{self.shuffled_unchecked(shuffle_type)}
+    }
+
     pub const fn shuffle(&mut self,shuffle_type:ShuffleType){
         *self=self.shuffled(shuffle_type)
     }
