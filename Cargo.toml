@@ -1,9 +1,8 @@
 [package]
 name = "deterministic-shuffle"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2024"
 repository = "https://github.com/Dmytro-Svitkin/deterministic-shuffle"
 description = "A lightweight, no_std-compatible Rust library for deterministic shuffling."
 license = "BSD-3-Clause"
 [dependencies]
-smath = "0.5.0"

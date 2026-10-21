@@ -1,7 +1,5 @@
 #![no_std]
 
-use smath::gcd;
-
 #[derive(Debug,Clone,Copy,PartialEq,Eq,PartialOrd,Ord)]
 pub struct Collection<T:Copy,const S:usize=256>{// For now collections of any (copy-able) type are legal.
     pub(crate)collection:Option<[T;S]>
@@ -151,14 +149,14 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
     
     pub const fn stride_shuffled(&self,stride_step:usize)->Self{
-        if self.is_none()||gcd(&[S as u32,stride_step as u32])!=1||stride_step==0||stride_step>=S{return Self{collection:None}}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
+        if self.is_none()||gcd(S,stride_step)!=1||stride_step==0||stride_step>=S{return Self{collection:None}}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
         else if stride_step==1{return *self}
         unsafe{self.stride_shuffled_unchecked(stride_step)}
     }
 
     pub const fn stride_shuffled_soft(&self,stride_step:usize)->Self{
         if self.is_none(){return Self{collection:None}}
-        else if gcd(&[S as u32,stride_step as u32])!=1||stride_step<2||stride_step>=S{return *self}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
+        else if gcd(S,stride_step)!=1||stride_step<2||stride_step>=S{return *self}// `S==0` and `stride_step>=S` conditions unified into `stride_step>=S`.
         unsafe{self.stride_shuffled_unchecked(stride_step)}
     }
 
@@ -254,17 +252,18 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
     }
 
     pub const fn multiplicative_shuffled(&self,multiplier:usize)->Self{
-        if self.is_none()||gcd(&[multiplier as u32,S as u32])!=1{return Self{collection:None}}
+        if self.is_none()||gcd(multiplier,S)!=1{return Self{collection:None}}
         unsafe{self.multiplicative_shuffled_unchecked(multiplier)}
     }
 
     pub const fn multiplicative_shuffled_soft(&self,multiplier:usize)->Self{
         if self.is_none(){return Self{collection:None}}
-        else if S<3||gcd(&[multiplier as u32,S as u32])!=1{return*self}
+        else if S<3||gcd(multiplier,S)!=1{return*self}
         unsafe{self.multiplicative_shuffled_unchecked(multiplier)}
     }
 }
 
+#[inline(always)]
 const fn reverse_bits(mut value:usize,anchor_value_bits:u32)->usize{
     let mut result:usize=0;
     let mut counter:u32=0;
@@ -274,4 +273,15 @@ const fn reverse_bits(mut value:usize,anchor_value_bits:u32)->usize{
         counter+=1
     }
     result
+}
+
+#[inline(always)]
+const fn gcd(mut a:usize,mut b:usize)->usize{
+    while b!=0{
+        let rcl:usize=b;
+        b=a%b;
+        a=rcl;
+    }
+    if a==0{return 1}
+    a
 }

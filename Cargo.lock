@@ -4,13 +4,4 @@ version = 4
 
 [[package]]
 name = "deterministic-shuffle"
-version = "0.0.0"
-dependencies = [
- "smath",
-]
-
-[[package]]
-name = "smath"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d66518801d68e97b6b8f976bad5a85d62104785a923a1e6e7c591f9795c44bc"
+version = "0.0.1"
