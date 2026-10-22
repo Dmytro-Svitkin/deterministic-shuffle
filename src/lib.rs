@@ -217,4 +217,51 @@ impl<T:Copy,const S:usize>Collection<T,S>{// T needs to be copy-able.
         }
         collection
     }
+
+    pub const fn auto_shuffle(&mut self){
+        *self=self.auto_shuffled();
+    }
+
+    pub const fn auto_shuffled(&self)->Self{
+        if self.is_none(){return Self{collection:None}}
+        else if S<2{return*self}
+
+        let mut result_collection:Collection<T,S>=*self;
+        if S==2{
+            let mut rcl_array:[T;S]=result_collection.collection.unwrap();
+            rcl_array.reverse();
+            result_collection=Self{collection:Some(rcl_array)}
+        }
+        else{
+            if S.is_power_of_two(){
+                result_collection=unsafe{
+                    result_collection
+                    .swap_shuffled_unchecked(S/2-1)
+                    .bit_reversal_shuffled_unchecked()
+                    .perfect_riffle_shuffled_unchecked()
+                    .swap_shuffled(S/3)
+                }
+            }
+            else if S%2==0{
+                result_collection=unsafe{
+                    result_collection
+                    .fold_shuffled_unchecked()
+                    .swap_shuffled_unchecked(S/3)
+                    .perfect_riffle_shuffled_unchecked()
+                    .swap_shuffled_unchecked(S/5+1)
+                }
+            }
+            else{
+                result_collection=unsafe{
+                    result_collection
+                    .swap_shuffled_unchecked(S/2)
+                    .stride_shuffled_unchecked(2)
+                    .swap_shuffled_unchecked(2)
+                    .fold_shuffled_soft()// For now.
+                    .swap_shuffled_unchecked(S/5)
+                }
+            }
+        }
+        result_collection
+    }
 }

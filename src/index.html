@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>High-Depth Shuffle Visualizer</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #090d16;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #111827;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h2 { margin-top: 0; font-size: 1.1rem; color: #38bdf8; margin-bottom: 15px; }
+        
+        /* Canvas wrapper ensures crisp rendering and zero gaps */
+        .canvas-wrapper {
+            line-height: 0;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+        canvas {
+            display: block;
+            width: 400px;
+            height: 400px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        label { width: 100%; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #030712;
+            color: #f8fafc;
+            border: 1px solid #1f2937;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        button {
+            flex: 1;
+            background: #38bdf8;
+            color: #030712;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+                cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #0ea5e9; }
+        button.secondary { background: #1f2937; color: #f8fafc; }
+        button.secondary:hover { background: #374151; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 id="title">Shuffle Matrix Visualizer</h2>
+    
+    <div class="canvas-wrapper">
+        <canvas id="gridCanvas"></canvas>
+    </div>
+    
+    <label for="arrayInput">Paste your array here (supports any size, e.g., 64 or 1024):</label>
+    <textarea id="arrayInput">[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]</textarea>
+    
+    <div class="controls">
+        <button onclick="visualize()">Visualize Array</button>
+        <button class="secondary" onclick="loadDefault1024()">Load 1-1024 Unshuffled</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gridCanvas');
+const ctx = canvas.getContext('2d');
+
+function getColorForValue(val, total, width) {
+    // Map value (1 to total) to its original 2D coordinates (col, row)
+    const index = val - 1;
+    const col = index % width;
+    const row = Math.floor(index / width);
+    const height = total / width;
+
+    // Rich 3D color depth mapping (RGB space derived from coordinate gradients)
+    const r = Math.floor((col / width) * 230 + 25);
+    const g = Math.floor((row / height) * 230 + 25);
+    const b = Math.floor(((col + row) / (width + height)) * 200 + 55);
+
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function visualize() {
+    const rawText = document.getElementById('arrayInput').value;
+
+    try {
+        const cleaned = rawText.replace(/[\[\]]/g, '');
+        const arr = cleaned.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        const total = arr.length;
+        
+        if (total === 0) {
+            alert("Array is empty!");
+            return;
+        }
+
+        // Automatically determine grid dimensions (closest square or rectangle)
+        const width = Math.round(Math.sqrt(total));
+        const height = Math.ceil(total / width);
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw each pixel/cell seamlessly without borders
+        arr.forEach((val, i) => {
+            const x = i % width;
+            const y = Math.floor(i / width);
+
+            ctx.fillStyle = getColorForValue(val, total, width);
+            ctx.fillRect(x, y, 1, 1);
+        });
+
+        document.getElementById('title').innerText = `Visualizing ${total} Elements (${width}×${height} Grid)`;
+    } catch (e) {
+        alert("Error parsing array. Ensure it is a valid comma-separated list of numbers.");
+    }
+}
+
+function loadDefault1024() {
+    const arr = Array.from({length: 1024}, (_, i) => i + 1);
+    document.getElementById('arrayInput').value = JSON.stringify(arr);
+    visualize();
+}
+
+// Load default 1024 on startup
+loadDefault1024();
+</script>
+
+</body>
+</html>
